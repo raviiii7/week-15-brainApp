@@ -1,10 +1,13 @@
 // To remove express error we use  npm install -d @types/express 
 import express from "express";
 import jwt from "jsonwebtoken";
-import { UserModel } from "./db";
+import { ContentModel, UserModel } from "./db";
+import { JWT_PASSWORD } from "./config";
+import {UserMiddleware} from "./middlewate"
+
 const app = express();
 const PORT = 3000;
-const JWT_PASSWORD="!2323"
+// const JWT_PASSWORD="!2323"
 app.use(express.json());
 
 app.post("/api/v1/signup",async (req,res)=>{
@@ -46,8 +49,21 @@ app.post("/api/v1/signin",async (req,res)=>{
 
 // })
 
-app.post("/api/v1/content",(req,res)=>{
-
+app.post("/api/v1/content",UserMiddleware,async (req,res)=>{
+    const link = req.body.link;
+    const type = req.body.type;
+    
+    await ContentModel.create({
+        link,
+        type,
+        // @ts-ignore
+        userId:req.userId,
+        tags:[]
+    })
+    res.json({
+        message : "Content Added."
+    })
+    
 })
 
 app.get("/api/v1/content",(req,res)=>{
