@@ -18,6 +18,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
 const config_1 = require("./config");
 const middlewate_1 = require("./middlewate");
+const utils_1 = require("./utils");
 const app = (0, express_1.default)();
 const PORT = 3000;
 // const JWT_PASSWORD="!2323"
@@ -70,12 +71,45 @@ app.post("/api/v1/content", middlewate_1.UserMiddleware, (req, res) => __awaiter
         message: "Content Added."
     });
 }));
-app.get("/api/v1/content", (req, res) => {
-});
-app.delete("/api/v1/content", (req, res) => {
-});
-app.post("/api/v1/brain/share", (req, res) => {
-});
+app.get("/api/v1/content", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const usetId = req.userId;
+    const content = yield db_1.ContentModel.find({
+        // @ts-ignore
+        userId: userId
+    });
+    res.json({ content });
+}));
+app.delete("/api/v1/content", middlewate_1.UserMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const contentId = req.body.contentId;
+    yield db_1.ContentModel.deleteMany({
+        contentId,
+        // @ts-ignore
+        userId: req.userId
+    });
+    res.json({
+        message: "deleted"
+    });
+}));
+app.post("/api/v1/brain/share", middlewate_1.UserMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const share = req.body.share;
+    if (share) {
+        yield db_1.LinkModel.create({
+            // @ts-ignore
+            userId: req.userId,
+            hash: (0, utils_1.random)(10)
+        });
+    }
+    else {
+        yield db_1.LinkModel.deleteOne({
+            // @ts-ignore
+            userId: req.userId
+        });
+    }
+    res.json({
+        message: "Updated shareable link"
+    });
+}));
 app.get("/api/v1/brain/:shareLink", (req, res) => {
 });
 app.listen(PORT, () => {
