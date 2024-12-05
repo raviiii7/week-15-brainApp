@@ -41,7 +41,7 @@ app.post("/api/v1/signin",async (req,res)=>{
         })
     }else{
         res.status(403).json({
-            message:"User does not exists."
+            message:"Incorrect Credentials."
         })
     }
 })
@@ -67,14 +67,16 @@ app.post("/api/v1/content",UserMiddleware,async (req,res)=>{
     
 })
 
-app.get("/api/v1/content",async (req,res)=>{
+app.get("/api/v1/content",UserMiddleware,async (req,res)=>{
     // @ts-ignore
-    const usetId = req.userId;
+    const userId = req.userId;
     const content = await ContentModel.find({
          // @ts-ignore
         userId: userId
+    }).populate("userId","username")
+    res.json({
+        content
     })
-    res.json({content})
 
 })
 
@@ -128,7 +130,7 @@ app.get("/api/v1/brain/:shareLink",async (req,res)=>{
     const user = await UserModel.findOne({
         userId : link.userId
     })
-    
+
     if(!user){
         res.status(411).json({
             message : "User not found"
@@ -138,6 +140,7 @@ app.get("/api/v1/brain/:shareLink",async (req,res)=>{
 
     res.json({
         username:user.username,
+        //@ts-ignore
         content:content
     })
 })

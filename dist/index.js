@@ -51,7 +51,7 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     else {
         res.status(403).json({
-            message: "User does not exists."
+            message: "Incorrect Credentials."
         });
     }
 }));
@@ -71,14 +71,16 @@ app.post("/api/v1/content", middlewate_1.UserMiddleware, (req, res) => __awaiter
         message: "Content Added."
     });
 }));
-app.get("/api/v1/content", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/api/v1/content", middlewate_1.UserMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // @ts-ignore
-    const usetId = req.userId;
+    const userId = req.userId;
     const content = yield db_1.ContentModel.find({
         // @ts-ignore
         userId: userId
+    }).populate("userId", "username");
+    res.json({
+        content
     });
-    res.json({ content });
 }));
 app.delete("/api/v1/content", middlewate_1.UserMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const contentId = req.body.contentId;
@@ -110,8 +112,37 @@ app.post("/api/v1/brain/share", middlewate_1.UserMiddleware, (req, res) => __awa
         message: "Updated shareable link"
     });
 }));
-app.get("/api/v1/brain/:shareLink", (req, res) => {
-});
+app.get("/api/v1/brain/:shareLink", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const hash = req.params.shareLink;
+    const link = yield db_1.LinkModel.findOne({
+        hash
+    });
+    if (!link) {
+        res.status(411).json({
+            message: "Incorrect Input"
+        });
+        return;
+    }
+    else {
+        const content = yield db_1.ContentModel.find({
+            userId: link.userId
+        });
+    }
+    const user = yield db_1.UserModel.findOne({
+        userId: link.userId
+    });
+    if (!user) {
+        res.status(411).json({
+            message: "User not found"
+        });
+        return;
+    }
+    res.json({
+        username: user.username,
+        //@ts-ignore
+        content: content
+    });
+}));
 app.listen(PORT, () => {
     console.log("App is listening on port: " + PORT);
 });
