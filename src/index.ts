@@ -96,10 +96,14 @@ app.delete("/api/v1/content",UserMiddleware, async (req,res)=>{
 app.post("/api/v1/brain/share",UserMiddleware,async (req,res)=>{
     const share = req.body.share;
     if(share){
+        const hash = random(10)
         await LinkModel.create({
             // @ts-ignore
             userId : req.userId,
-            hash : random(10)
+            hash : hash
+        })
+        res.json({
+            message : "/share/"+hash
         })
     }else{
         await LinkModel.deleteOne({
@@ -127,14 +131,13 @@ app.get("/api/v1/brain/:shareLink",async (req,res)=>{
         })
     }
 
-    
     const user = await UserModel.findOne({
         userId : link.userId
     })
 
     if(!user){
         res.status(411).json({
-            message : "User not found"
+            message : "User not found!"
         })
         return;
     }
